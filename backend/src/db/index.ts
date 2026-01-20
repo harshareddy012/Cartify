@@ -6,15 +6,13 @@ import {ENV} from "../config/env" ;
 
 if (!ENV.DB_URL)
 {
-    throw new Error( "there is no url for database ! ") ;
+    throw new Error("DB_URL environment variable is not configured");
     
 }
-
 // initialing new postgresql connection pool 
+// initializing new postgresql connection pool 
 
 const pool = new Pool ( { connectionString : ENV.DB_URL}) ; 
-
-
 pool.on("connect" , ()=>{
     console.log("conncetion established ! ");
 });

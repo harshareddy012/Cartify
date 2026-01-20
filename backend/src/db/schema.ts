@@ -5,7 +5,7 @@ import { relations } from "drizzle-orm";
 // users table 
 
 export const users = pgTable("users" , {
-    id: uuid("id").primaryKey() .defaultRandom(), // we have used text instead of serial becuase we are gonna use clerk id as user id 
+    id: uuid("id").primaryKey() , // we have used text instead of serial becuase we are gonna use clerk id as user id 
     email:text("email").unique().notNull() , // schemas 
     name:text("name") ,
     imageUrl:text("image_url") ,
@@ -18,21 +18,21 @@ export const users = pgTable("users" , {
 // products table 
 
 export const products = pgTable("products" , {
-id: uuid("id").defaultRandom() .primaryKey() ,    // uuid : universally unique identifier 128 bit unique identifier that promises the random value that is hard to guess
+id: uuid("id")
+// .defaultRandom() 
+.primaryKey() ,    // uuid : universally unique identifier 128 bit unique identifier that promises the random value that is hard to guess
 title: text("title").notNull() , 
 description: text("description").notNull() , 
   imageUrl:text("image_url") ,
   userId:uuid("user_id") 
-  .defaultRandom()
   .notNull() 
-  .references(()=> users.id , { onDelete: "cascade"}), // {cascade } =>if the user is deleted then the realted record of that user is also deleted the refrence is to check the validity of the relation , 
-  createdAt:timestamp("created_at" , {mode:"date"} ).notNull() .defaultNow(), 
+  .references(()=> users.id , { onDelete: "cascade"}),  createdAt:timestamp("created_at" , {mode:"date"} ).notNull() .defaultNow(), 
 
 });
 // comments table
 
 export const comments = pgTable("comments" , {
-    id: uuid("id").defaultRandom() .primaryKey() , 
+    id: uuid("id") .primaryKey() , 
     content: text("content").notNull(),
     userId:uuid("user_id")   // if the user is deleted then the comment is also deleted 
     .defaultRandom()
