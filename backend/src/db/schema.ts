@@ -40,7 +40,6 @@ export const comments = pgTable("comments" , {
     .references(()=> users.id , {onDelete:'cascade'}),
 
 productId:uuid("product_id")
-.defaultRandom()
 .notNull()
 .references(()=> products.id , {onDelete:"cascade"}),  // here we have got the problem , the fk should be of same type her we have u have product id as "text " and comment refreed as "uuid " so we need to change the product id to uuid
 createdAt:timestamp("created_at" , {mode:"date"} ).notNull() .defaultNow(), 
