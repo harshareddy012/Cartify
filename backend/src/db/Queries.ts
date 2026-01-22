@@ -38,11 +38,15 @@ export const updateUser = async( id: string , data : Partial<NewUser>)=>{
 
 
 export const upsertUser = async ( data: NewUser)=>{
-    const existingUser = await getUserById(data.id); // if the user exists we will update else create
-    if(existingUser) return updateUser( data.id , data) ; 
-    return createUser(data) ;  
-}
-//  product queries 
+    const [user] = await db.insert(users)
+        .values(data)
+        .onConflictDoUpdate({
+            target: users.id,
+            set: data,
+        })
+        .returning();
+    return user;
+}//  product queries 
 
 // create 
 
@@ -50,18 +54,18 @@ export const createProduct = async ( data :NewProduct) =>{
     const [product] = await db.insert(products) .values(data).returning() ;
     return product ; 
 }
-
-// read 
-
-export const getAllProductById  = async(id:string)=>{
+export const getAllProductsByUserId = async(userId: string)=>{
     return await db.query.products.findMany( 
         {with:
-            {users:true}, // normal join to get user details along with product
-            orderBy: (products,{ desc})=> [desc( products.createdAt)] , // square brackets used in drizzle to denote array even if it is a single column
-                
+            {users:true},
+            where: eq(products.userId, userId),
+            orderBy: (products,{ desc})=> [desc( products.createdAt)],
          
         })
-};
+};                
+         
+        
+
 
 
 // update
@@ -108,19 +112,21 @@ return comment ;
 }
 
 
-//  READ 
+//read 
+
 
 export const getCommentById = async (id : string )=>{
     return await db.query.comments.findFirst(
         {
+            where: eq(comments.id, id),
             with:
             {
                 user:true , 
             }
         }
     )
-};
-
+};            
+        
 // update 
 export const updateCommentById = async (id: string , data: Partial<NewComments> )=>{
     const [comment] = await db.update(comments) .set(data) .where(eq(comments.id , id )) .returning() ;
