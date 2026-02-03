@@ -9,7 +9,6 @@ router.post("/:productId" , requireAuth , CommentsController.createComment) ;
 
 // to delete a comment that exists ( protected )  :: /api/comments/:commentId
 
-router.delete("/" , requireAuth , CommentsController.deleteComment) ; 
-
+router.delete("/:commentId" , requireAuth , CommentsController.deleteComment) ; 
 
 export default router ; 

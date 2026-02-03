@@ -1,5 +1,4 @@
-  /// <refernce types="@clerk/express/env" />
-
+///<reference types="@clerk/express/env" />
 
 //   This line is a triple-slash directive, used in TypeScript to reference types from another module.
 

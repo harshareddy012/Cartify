@@ -21,8 +21,7 @@ export const getAllproducts = async (req: Request, res: Response) => {
 export const getProductsByUserId = async ( req:Request , res: Response) =>{
     try {
         const {id} = req.params ; // getting id from req.params
-        const product = await proCon.getProductsByUserId("id") ; // calling the query function to get product by id , here also we jave used "" becuase the function expects a string argument and id is passed and collected as string from req.params
-        if(!product) return res.status(404).json({error:"product not found ! "}) ; // if product not found return 404
+        const product = await proCon.getProductsByUserId("id") ; // calling the query function to get product by id        if(!product) return res.status(404).json({error:"product not found ! "}) ; // if product not found return 404
         res.status(200).json(product) ; // if product found return 200 with product details
     }
     catch(error){

@@ -11,7 +11,7 @@ import { getAuth } from "@clerk/express";
 export const createComment = async ( req : Request , res : Response)=>{
     try {
         const { userId} = getAuth(req) ;
-        if ( !userId) return res.status(401) .json({error: "unauthroized user ! "});
+        if ( !userId) return res.status(401).json({error: "unauthroized user ! "});
       const { productId} = req.params ; // getting productId from req.params params here is an object that contains all the route parameters
       const { content} =req.body ; // getting comment content from req.body
       if( !content ) return res.status(400).json({error :" comment content is required ! "}) ; // validating if content is present or not
@@ -27,7 +27,7 @@ export const createComment = async ( req : Request , res : Response)=>{
     }
     catch(error){
         console.error("error creating the comment ! " , error )
-        res.status(500).json(({error:"failed to create a ne commnet ! , try sometime later "}));
+        res.status(500).json(({error:"failed to create a new commnet ! , try sometime later "}));
     }
 } 
 

@@ -2,7 +2,7 @@ import { Router} from "express" ;
 const router = Router() ;
 export default router ; 
  import {syncUser} from "../controllers/userController" ;
- import {requireAuth } from "@clerk/express"
+ import {requireAuth } from "@clerk/express" ;
 
 // defining the route for syncing user 
 router.post("/sync" , requireAuth, syncUser) ;    // here we are getting error at requireAuth() because                

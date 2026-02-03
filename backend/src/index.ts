@@ -37,10 +37,9 @@ app.get("/" , (req , res)=>{  // this is the root route that allows us to check 
 });
 
 
-app.use( "api/users/",UserRoutes)    // this makes us use this in UserRoutes for writing the api endpoint just /sync is enough 
-app.use( "api/products/",ProductRoutes) 
-app.use( "api/comments/",CommentsRoutes) 
-
+app.use("/api/users/", UserRoutes);
+app.use("/api/products/", ProductRoutes);
+app.use("/api/comments/", CommentsRoutes);
 
 // app.use() is used here to mount the CommentsRoutes middleware to the Express app.
 
