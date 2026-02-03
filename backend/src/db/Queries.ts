@@ -46,7 +46,10 @@ export const upsertUser = async ( data: NewUser)=>{
         })
         .returning();
     return user;
-}//  product queries 
+}
+
+
+//  product queries 
 
 // create 
 
@@ -54,9 +57,16 @@ export const createProduct = async ( data :NewProduct) =>{
     const [product] = await db.insert(products) .values(data).returning() ;
     return product ; 
 }
-export const getAllProductsByUserId = async(userId: string)=>{
+
+
+
+// read 
+//  getting all the products 
+
+export const getAllProducts = async(userId: string)=>{
     return await db.query.products.findMany( 
-        {with:
+        {
+            with:
             {users:true},
             where: eq(products.userId, userId),
             orderBy: (products,{ desc})=> [desc( products.createdAt)],
@@ -70,7 +80,20 @@ export const getAllProductsByUserId = async(userId: string)=>{
 
 // update
 
-export const getProductById = async (id : string) =>{
+export const updateProduct = async (id: string, data: Partial<NewProduct>) => {
+  const existingProduct = await getProductsByUserId(id);
+  if (!existingProduct) {
+    throw new Error(`Product with id ${id} not found`);
+  }
+
+  const [product] = await db.update(products).set(data).where(eq(products.id, id)).returning();
+  return product;
+};
+
+
+
+// get by user id
+export const getProductsByUserId = async (id : string) =>{
     return await db.query.products.findFirst(
         {
             where: eq ( products.id , id ),// condition to find product by id
