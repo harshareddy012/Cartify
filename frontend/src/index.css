@@ -1,0 +1,7 @@
+
+/* this is global css file  */
+
+@import "tailwindcss";
+@plugin "daisyui"{
+    themes: all; 
+}

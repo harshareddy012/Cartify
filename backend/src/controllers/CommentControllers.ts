@@ -1,6 +1,7 @@
 import * as CommentQuery from "../db/Queries";
 import type { Request , Response} from "express" ;// here request and Response will help in type checking
 import { getAuth } from "@clerk/express";
+import { NewComments } from "../db/schema";
 
 
 // create comment ( protected route ) 
@@ -20,8 +21,8 @@ export const createComment = async ( req : Request , res : Response)=>{
       const comment = await CommentQuery.createComment({
         content, 
         userId,
-         productId ,
-      });
+      productId,
+      }as NewComments);
 
       res.status(200).json(comment)
     }
@@ -42,10 +43,15 @@ export const deleteComment  = async ( req: Request , res: Response)=>{
         const { commentId} = req.params ; // getting commentId from req.params
         const existingComment = await CommentQuery.getCommentById("commentId"); // getting comment by id from db
     }
+    catch(error){
+        console.error({error: "error in delete methode router "})
+        res.status(500).json({error:"something went wrong while deleting "})
+    }
 }
 
 
 
-interface  NewComments{
-productId:string,
-}
+
+// }as NewComments $interinsert);  }as any );
+
+// above thing is a saviour for real ! , respect ++

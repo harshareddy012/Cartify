@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as proCon from "../db/Queries";
 import {  getAuth } from "@clerk/express";
+import { NewProduct } from "../db/schema";
 
 // get all products ( public)
 
@@ -57,11 +58,11 @@ export const createProduct = async ( req:Request , res:Response)=>{
             res.status(400).json({error: "all fileds are required ! "}) ; // if any field is missing return 400
         }
         const product = await proCon.createProduct({
-            title , 
+            title, 
             description,
             imageUrl,
             userId , 
-        });
+        }as NewProduct);
 
 
         res.status(201).json(product)
@@ -90,7 +91,7 @@ const updateProduct = await proCon.updateProduct("id" , {
     title, 
     description,
     imageUrl,
-});
+}as any);
 res.status(200).json(updateProduct);
     }
 catch( error ){
@@ -135,10 +136,3 @@ catch(error){
 // queries are different from controllers as they only interact with the database and do not handle requests or responses
 
 
-
-interface NewProduct {
-    title: string ;
-    description: string ;
-    imageUrl: string ;
-    userId: string ;
-}  
