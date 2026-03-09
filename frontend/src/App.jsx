@@ -4,7 +4,7 @@ import { SignedIn, SignedOut, SignInButton, SignUp, SignUpButton, UserButton } f
 import { Routes , Route , Link} from "react-router";
 
 
-//  imprtig the components 
+// importing the components
 import Navbar from './components/Navbar.jsx';
 
 
@@ -15,7 +15,7 @@ import EditProductPage from "./pages/EditProductPage"
 import HomePage from "./pages/HomePage"
 import ProductPage from "./pages/ProductPage"
 import ProfilePage from "./pages/ProfilePage"
-
+import NotFound404 from "./pages/NotFound404"
 
 const App = () => {
   return (
@@ -31,6 +31,7 @@ const App = () => {
 <Route path='Profile' element={<ProfilePage/>}  />  {/* profile page  */}
 <Route path='create' element={<CreatePage/>}  />
 <Route  path='edit/:id' element={<EditProductPage/>} />
+<Route path="*" element={<NotFound404/>} />
 
 </Routes>
   </main>
