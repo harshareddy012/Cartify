@@ -20,9 +20,9 @@ app.use(requireAuth); // using the requireAuth middleware function
 app.use(clerkMiddleware()); // using the clerk middleware function 
 app.use(express.json());  // body parser middleware
 app.use(express.urlencoded({extended:true})); // frontend data from action parser
-app.use(cors({origin:ENV.FRONTEND_URL})) // this is cors middleware to allow the frontend to access the backend apis here we have given the frontend url from env file
+app.use(cors({origin:ENV.FRONTEND_URL, credentials:true})) // this is cors middleware to allow the frontend to access the backend apis here we have given the frontend url from env file
 
-
+//credentials:true is used to allow cookies to be sent with requests from the frontend to the backend, which is important for authentication and maintaining user sessions. By setting credentials:true, you enable the frontend to include cookies in its requests, allowing the backend to recognize and authenticate the user making the request.k
 app.get("/" , (req , res)=>{  // this is the root route that allows us to check if the server is running
     // res.sendStatus(200);
     res.json({
