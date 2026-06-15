@@ -1,11 +1,10 @@
-import { Router} from "express" ;
-const router = Router() ;
-export default router ; 
- import {syncUser} from "../controllers/userController" ;
- import {requireAuth } from "@clerk/express" ;
+import { Router } from "express";
+import { requireAuth } from "@clerk/express";
+import { syncUser } from "../controllers/userController";
 
-// defining the route for syncing user 
-router.post("/sync" , requireAuth, syncUser) ;    // here we are getting error at requireAuth() because                
+const router = Router();
 
-//  /api/users/sync   => post , this is a endpoiont where it is gonna sync the user from the cler to neon db 
-// we have to export the router at the top
+// POST /api/users/sync – syncs Clerk user into our Neon DB (protected)
+router.post("/sync", requireAuth, syncUser);
+
+export default router; // ✅ export is at the BOTTOM so routes are registered first

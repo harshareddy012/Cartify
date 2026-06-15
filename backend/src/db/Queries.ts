@@ -1,165 +1,115 @@
-//   THIS FILE IS A DAL ( DATA ACCESS LAYER )
+// DATA ACCESS LAYER – all database interactions live here
 
-
-
-// interacting with database tables
-// we are gonna create users , products , comments tables
 import { db } from "./index";
-import { desc, eq } from "drizzle-orm" ;
-import { users, products, comments, type NewUser, type NewProduct, type NewComments } from "./schema";
+import { desc, eq } from "drizzle-orm";
+import {
+  users,
+  products,
+  comments,
+  type NewUser,
+  type NewProduct,
+  type NewComments,
+} from "./schema";
 
-// USER QUERIES 
+// ─── USER QUERIES ─────────────────────────────────────────────────────────────
 
-// export const createUser = async ( user : NewUser ) => {
-//     const [ newUser ] = await db.insert( users ).values( user ).returning() ;
-//     return newUser ;
-// }
+export const getUserById = async (id: string) => {
+  return await db.query.users.findFirst({ where: eq(users.id, id) });
+};
 
+export const upsertUser = async (data: NewUser) => {
+  const [user] = await db
+    .insert(users)
+    .values(data)
+    .onConflictDoUpdate({ target: users.id, set: data })
+    .returning();
+  return user;
+};
 
+export const updateUser = async (id: string, data: Partial<NewUser>) => {
+  const [updatedUser] = await db
+    .update(users)
+    .set(data)
+    .where(eq(users.id, id))
+    .returning();
+  return updatedUser;
+};
 
-// C R U D ( upsert is service layer level function )
+// ─── PRODUCT QUERIES ──────────────────────────────────────────────────────────
 
-// this function will create a new user in the database
-export const createUser = async (data: NewUser) => {
-    const [user] = await db.insert(users).values(data).returning();
-    return user;
-} ;
-
-// this function will get a user by id from the database
-export const getUserById = async (id:string ) =>{
-return await db.query.users.findFirst ( {where: eq ( users.id , id) ,   } ) ; // db.query.users  this will access the db access table 
-}
-
-// export const updateUser = async( id: string , data : Partial<NewUser>)=>{
-export const updateUser = async( id: string , data : Partial<NewUser>)=>{
-    const [updatedUser] = await db.update(users).set(data).where(eq(users.id, id)).returning();
-    return updatedUser;
-};// upsert = create / update 
-
-
-export const upsertUser = async ( data: NewUser)=>{
-    const [user] = await db.insert(users)
-        .values(data)
-        .onConflictDoUpdate({
-            target: users.id,
-            set: data,
-        })
-        .returning();
-    return user;
-}
-
-
-//  product queries 
-
-// create 
-
-export const createProduct = async ( data :NewProduct) =>{
-    const [product] = await db.insert(products) .values(data).returning() ;
-    return product ; 
-}
-
-
-
-// read 
-//  getting all the products 
-
-export const getAllProducts = async(userId: string)=>{
-    return await db.query.products.findMany( 
-        {
-            with:
-            {users:true},
-            where: eq(products.userId, userId),
-            orderBy: (products,{ desc})=> [desc( products.createdAt)],
-         
-        })
-};                
-         
-        
-
-
-
-// update
-
-export const updateProduct = async (id: string, data: Partial<NewProduct>) => {
-  const existingProduct = await getProductsByUserId(id);
-  if (!existingProduct) {
-    throw new Error(`Product with id ${id} not found`);
-  }
-
-  const [product] = await db.update(products).set(data).where(eq(products.id, id)).returning();
+export const createProduct = async (data: NewProduct) => {
+  const [product] = await db.insert(products).values(data).returning();
   return product;
 };
 
-
-
-// get by user id
-export const getProductsByUserId = async (id : string) =>{
-    return await db.query.products.findFirst(
-        {
-            where: eq ( products.id , id ),// condition to find product by id
-            with:                          //with is like sql join
-            {
-                users:true, // normal join to get user details along with products
-                comments:{ //comments is a nested join to get comments along with product
-                    with:
-                    {
-                        user:true // we would have used comments:true what will give only comment details but we want user details along with comments so we use nested with
-                    },
-                    orderBy: (comments , {desc}) => [ desc ( comments.createdAt)] // ordering comments by createdAt in descending order
-        }
-    }
-}
- )
-}
-
-
-//delete
-export const deleteProductById = async ( id: string) =>{
-const [product] = await db.delete(products).where(eq (products.id , id)).returning();
-return product ; 
+// ✅ Fixed: when userId is empty string return ALL products (public feed)
+//           when userId is provided filter to that user's products
+export const getAllProducts = async (userId?: string) => {
+  return await db.query.products.findMany({
+    with: { users: true },
+    ...(userId ? { where: eq(products.userId, userId) } : {}),
+    orderBy: (products, { desc }) => [desc(products.createdAt)],
+  });
 };
 
-
-
-// comment queries 
-
-// CREATE 
- 
-export const createComment = async (data: NewComments)=>{
-const [comment] = await db.insert(comments) 
-.values(data)
-// .onConflictDoUpdate()
-.returning() ;
-
-return comment ; 
-}
-
-
-//read 
-
-
-export const getCommentById = async (id : string )=>{
-    return await db.query.comments.findFirst(
-        {
-            where: eq(comments.id, id),
-            with:
-            {
-                user:true , 
-            }
-        }
-    )
-};            
-        
-// update 
-export const updateCommentById = async (id: string , data: Partial<NewComments> )=>{
-    const [comment] = await db.update(comments) .set(data) .where(eq(comments.id , id )) .returning() ;
-    return comment ;
+// Get a single product by its own id (with user + nested comments)
+export const getProductById = async (id: string) => {
+  return await db.query.products.findFirst({
+    where: eq(products.id, id),
+    with: {
+      users: true,
+      comments: {
+        with: { user: true },
+        orderBy: (comments, { desc }) => [desc(comments.createdAt)],
+      },
+    },
+  });
 };
 
-// delete 
+// Get all products belonging to a specific user (for "My Products" / profile)
+export const getProductsByUserId = async (userId: string) => {
+  return await db.query.products.findMany({
+    where: eq(products.userId, userId),
+    with: { users: true },
+    orderBy: (products, { desc }) => [desc(products.createdAt)],
+  });
+};
 
+export const updateProduct = async (id: string, data: Partial<NewProduct>) => {
+  const [product] = await db
+    .update(products)
+    .set(data)
+    .where(eq(products.id, id))
+    .returning();
+  return product;
+};
 
-export const deleteCommentById = async (id : string )=> {
-    const [comment] = await db.delete(comments) .where(eq( comments.id , id ))  .returning() ;
-    return comment ; 
+export const deleteProductById = async (id: string) => {
+  const [product] = await db
+    .delete(products)
+    .where(eq(products.id, id))
+    .returning();
+  return product;
+};
+
+// ─── COMMENT QUERIES ──────────────────────────────────────────────────────────
+
+export const createComment = async (data: NewComments) => {
+  const [comment] = await db.insert(comments).values(data).returning();
+  return comment;
+};
+
+export const getCommentById = async (id: string) => {
+  return await db.query.comments.findFirst({
+    where: eq(comments.id, id),
+    with: { user: true },
+  });
+};
+
+export const deleteCommentById = async (id: string) => {
+  const [comment] = await db
+    .delete(comments)
+    .where(eq(comments.id, id))
+    .returning();
+  return comment;
 };

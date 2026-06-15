@@ -1,57 +1,52 @@
-import * as CommentQuery from "../db/Queries";
-import type { Request , Response} from "express" ;// here request and Response will help in type checking
+import type { Request, Response } from "express";
+import * as db from "../db/Queries";
 import { getAuth } from "@clerk/express";
 import { NewComments } from "../db/schema";
 
+// ─── CREATE COMMENT (protected) ───────────────────────────────────────────────
+export const createComment = async (req: Request, res: Response) => {
+  try {
+    const { userId } = getAuth(req);
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
-// create comment ( protected route ) 
+    const productId = req.params.productId as string; // ✅ actual variable, not "productId"
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ error: "Comment content is required" });
 
+    // Verify the product exists before adding a comment
+    const existingProduct = await db.getProductById(productId); // ✅ productId variable
+    if (!existingProduct) return res.status(404).json({ error: "Product not found" });
 
-// steps : check auth -> get userId from clerk -> get comment details from req.body -> validate -> check if the product exists or not ->  insert into db -> return response
-
-export const createComment = async ( req : Request , res : Response)=>{
-    try {
-        const { userId} = getAuth(req) ;
-        if ( !userId) return res.status(401).json({error: "unauthroized user ! "});
-      const { productId} = req.params ; // getting productId from req.params params here is an object that contains all the route parameters
-      const { content} =req.body ; // getting comment content from req.body
-      if( !content ) return res.status(400).json({error :" comment content is required ! "}) ; // validating if content is present or not
-      const existingProduct = await CommentQuery.getProductsByUserId("productId");
-      if( !existingProduct) return res.status(404).json({ error: "product not found ! "}) ; // checking if the product exists or not
-      const comment = await CommentQuery.createComment({
-        content, 
-        userId,
+    const comment = await db.createComment({
+      content,
+      userId,
       productId,
-      }as NewComments);
+    } as NewComments);
 
-      res.status(200).json(comment)
-    }
-    catch(error){
-        console.error("error creating the comment ! " , error )
-        res.status(500).json(({error:"failed to create a new commnet ! , try sometime later "}));
-    }
-} 
+    res.status(201).json(comment);
+  } catch (error) {
+    console.error("Error in createComment:", error);
+    res.status(500).json({ error: "Failed to create comment" });
+  }
+};
 
+// ─── DELETE COMMENT (protected, owner only) ───────────────────────────────────
+export const deleteComment = async (req: Request, res: Response) => {
+  try {
+    const { userId } = getAuth(req);
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
+    const commentId = req.params.commentId as string; // actual variable, not "commentId"
 
-// delete comment ( protected route --> only owner ) 
+    const existingComment = await db.getCommentById(commentId); //  commentId variable
+    if (!existingComment) return res.status(404).json({ error: "Comment not found" });
+    if (existingComment.userId !== userId)
+      return res.status(403).json({ error: "Forbidden – you do not own this comment" });
 
-export const deleteComment  = async ( req: Request , res: Response)=>{
-    try{
-        const { userId} = getAuth(req);
-        if (!userId) return res.status(401).json({error: "unauthorized user !"});
-        const { commentId} = req.params ; // getting commentId from req.params
-        const existingComment = await CommentQuery.getCommentById("commentId"); // getting comment by id from db
-    }
-    catch(error){
-        console.error({error: "error in delete methode router "})
-        res.status(500).json({error:"something went wrong while deleting "})
-    }
-}
-
-
-
-
-// }as NewComments $interinsert);  }as any );
-
-// above thing is a saviour for real ! , respect ++
+    await db.deleteCommentById(commentId); // ✅ completed – was missing before
+    res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (error) {
+    console.error("Error in deleteComment:", error);
+    res.status(500).json({ error: "Failed to delete comment" });
+  }
+};
