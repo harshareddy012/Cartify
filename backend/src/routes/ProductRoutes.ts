@@ -1,37 +1,27 @@
-import { Router} from "express" ;
-const router = Router() ;
-import * as ProductController from "../controllers/ProductController" ;
+import { Router } from "express";
 import { requireAuth } from "@clerk/express";
+import * as ProductController from "../controllers/ProductController";
 
-// route to get all products that is public route where users can see the products without being authenticated 
+const router = Router();
 
+// GET /api/products – public feed (all products)
+router.get("/", ProductController.getAllproducts);
 
-router.get("/" , ProductController.getAllproducts)
+// ✅ GET /api/products/my MUST come BEFORE /:id  
+// otherwise Express treats "my" as a product id param
+router.get("/my", requireAuth, ProductController.getMyProducts);
 
-// GET method to get a single product by id ( private route ) so we have to use requireAuth middleware from the clerk 
+// GET /api/products/:id – single product detail (public)
+router.get("/:id", ProductController.getProductById);
 
-router.get("/:id" ,requireAuth,  ProductController.getProductsByUserId);
+// POST /api/products – create a new product (protected)
+// ✅ Was POST /:id which is wrong – create doesn't take an id
+router.post("/", requireAuth, ProductController.createProduct);
 
-// route to get my products ( protected route ) this route will get products of the currently authenticated user
+// PUT /api/products/:id – update product (protected, owner only)
+router.put("/:id", requireAuth, ProductController.updateProduct);
 
-router.get("/my" , requireAuth , ProductController.getMyProducts) ;
+// DELETE /api/products/:id – delete product (protected, owner only)
+router.delete("/:id", requireAuth, ProductController.deleteProduct);
 
-// route to create a product ( protected route) only authenticated users can create products 
-
-router.post("/:id" , requireAuth , ProductController.createProduct);
-
-// update product route ( protected route -> owner only ) 
-//  PUT / api / products / :id 
-
-router.put("/:id" , requireAuth , ProductController.updateProduct);
-
-
-// delete product route ( protected route -> owner only )
-// DELETE / api / products / :id
-
-router.delete("/:id" , requireAuth , ProductController.deleteProduct) ;
-
-// summary : here we have defined all the routes for products and used the requireAuth middleware from clerk to protect the routes that require authentication
-
-
-export default router ; // exporting the router to be used in the main app 
+export default router;
